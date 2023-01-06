@@ -17,6 +17,7 @@ import glob from 'glob'
 import imgToPDF from 'image-to-pdf'
 import { DownloadRequest } from '../../interfaces/comics-downloader'
 import _ from 'lodash'
+import { shell } from 'electron'
 
 
 // export async function loadSources(sourcesFolder: string) {
@@ -119,8 +120,8 @@ export async function downloadfFiles(data: DownloadRequest) {
                     await pipeline(resp.data, writer)
                 } catch (err) {
                     console.log(err)
-                    progressBar.close()
-                    return Promise.reject(err)
+                    // progressBar.close()
+                    // return Promise.reject(err)
 
                 }
                 if (data.chapters.length == 1)
@@ -138,7 +139,7 @@ export async function downloadfFiles(data: DownloadRequest) {
         detail: 'Wait...',
 
     })
-
+    console.log(tempDir)
     if (data.cbr)
         await generateCBR(
             tempSavePath,
@@ -151,6 +152,8 @@ export async function downloadfFiles(data: DownloadRequest) {
         )
 
     await fs.removeDir(tempDir)
+
+    shell.openPath(downloadDir)
 
     return true
 }

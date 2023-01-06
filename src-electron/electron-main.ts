@@ -1,8 +1,8 @@
 
-import { app, BrowserWindow, nativeTheme, ipcMain, Menu } from 'electron';
+
+import { app, BrowserWindow, nativeTheme, ipcMain, Menu, session } from 'electron';
 import path from 'path';
 import os from 'os';
-import glob from 'glob'
 
 import cheerio from 'cheerio'
 
@@ -12,6 +12,8 @@ import async from 'async'
 import ProgressBar from 'electron-progressbar'
 // import fs from 'node:fs/promises'
 import { store } from './helpers/Store'
+
+import playwright from 'playwright';
 
 
 
@@ -43,6 +45,7 @@ function createWindow() {
     /**
      * Initial window options
      */
+
     mainWindow = new BrowserWindow({
         icon: path.resolve(__dirname, 'icons/icon.png'), // tray icon
         // maxWidth: 600,
@@ -83,6 +86,10 @@ function createWindow() {
     mainWindow.on('closed', () => {
         mainWindow = undefined;
     });
+
+
+
+
 }
 
 app.whenReady().then(createWindow);
@@ -101,11 +108,17 @@ app.on('activate', () => {
     }
 });
 
+const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'
+
+
+
 // import { MangaLife, MangaLife, MangaLife, MangaLife, MangaLife } from './nepnep/MangaLife/MangaLife'
 
 // Handle Source
 
 // const source = new MangaLife(cheerio)
+let source: Source
+
 const wrapper = new APIWrapper()
 
 
@@ -114,52 +127,44 @@ const wrapper = new APIWrapper()
 // const versioning = glob.sync(dir + '/**/*.json')
 // console.log(sources)
 
+function setUserAgent(baseUrl: string) {
+    const filter = {
+        urls: ['https://*/*', 'http://*/*'],
+    };
+    session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
 
+        const url = new URL(baseUrl);
+        details.requestHeaders['Origin'] = url.origin;
+        details.requestHeaders['Referer'] = url.origin;
+        // details.requestHeaders['UserAgent'] = userAgent
+        details.requestHeaders['User-Agent'] = userAgent
+
+        callback({ cancel: false, requestHeaders: details.requestHeaders });
+    });
+}
 
 
 async function loadSource(src: any) {
 
 
-
-
-    const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36 Edg/108.0.1462.54'
-
-
-
+    setUserAgent(src.websiteBaseURL)
 
     const mangaSource: Source = await import(store.getSourcePath(src.id))
     const source = new mangaSource[src.id](cheerio)
-    console.log(source)
-
-    source.userAgent = userAgent
-    source.requestManager = createRequestManager({
-        requestsPerSecond: 4,
-        requestTimeout: 30000,
-        interceptor: {
-            interceptRequest: async (request: Request): Promise<Request> => {
-
-                request.headers = {
-                    ...(request.headers ?? {}),
-                    ...{
-                        ...(userAgent && { 'user-agent': userAgent }),
-                        'referer': `${source.baseUrl}/`
-                    }
-                }
-
-                return request
-            },
-
-            interceptResponse: async (response: Response): Promise<Response> => {
-                return response
-            }
-        }
-    })
-    console.log(source)
 
     return source
 
 }
 
+
+ipcMain.handle('changeSource', async (_, sourceId) => {
+    try {
+        source = await loadSource(sourceId)
+        return true
+    } catch (err) {
+        return false
+    }
+})
 
 
 // const source = new sourceClass(cheerio)
@@ -169,20 +174,20 @@ ipcMain.handle('sources', async () => {
     // return JSON.parse(await fs.readFile(versioning[0], 'utf8'))
 })
 
-ipcMain.handle('get/sections', async (_, sourceId) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('get/sections', async () => {
+
     return await wrapper.getHomePageSections(source)
 })
-ipcMain.handle('get/details', async (event, sourceId, mangaId) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('get/details', async (_, mangaId) => {
+
     return await wrapper.getMangaDetails(source, mangaId)
 })
-ipcMain.handle('get/chapters', async (event, sourceId, mangaId) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('get/chapters', async (_, mangaId) => {
+
     return await wrapper.getChapters(source, mangaId)
 })
-ipcMain.handle('get/chapter/details', async (event, sourceId, mangaId, chapters: Chapter[]) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('get/chapter/details', async (_, mangaId, chapters: Chapter[]) => {
+
     const progressBar = new ProgressBar({
         indeterminate: true,
         text: 'Getting Chapter Data ...',
@@ -200,21 +205,21 @@ ipcMain.handle('get/chapter/details', async (event, sourceId, mangaId, chapters:
     return result
     // return await wrapper.getChapterDetails(source, mangaId, chapterId ?? 'unknown')
 })
-ipcMain.handle('search', async (_, sourceId, query, metadata) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('search', async (_, query, metadata) => {
+
     return await wrapper.searchRequest(source, query, metadata)
 })
-ipcMain.handle('getTags', async (_, sourceId) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('getTags', async () => {
+
     return await wrapper.getTags(source)
 })
 
-ipcMain.handle('download/chapter', async (_, source, data: DownloadRequest) => {
+ipcMain.handle('download/chapter', async (_, data: DownloadRequest) => {
     return await downloadfFiles(data)
 })
 
-ipcMain.handle('view-more', async (_, sourceId, section) => {
-    const source = await loadSource(sourceId)
+ipcMain.handle('view-more', async (_, section) => {
+
     return await wrapper.getViewMoreItems(source, section, undefined, 1)
 })
 

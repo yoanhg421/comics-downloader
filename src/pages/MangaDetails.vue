@@ -214,22 +214,15 @@ function getAuthorResults(author: string) {
 
 console.log(route.query.mangaId)
 //@ts-expect-error api
-store.MangaDetails = await window.api.getMangaDetails(
-    source,
-    route.query.mangaId
-)
+store.MangaDetails = await window.api.getMangaDetails(route.query.mangaId)
 //@ts-expect-error api
-store.MangaChapters = await window.api.getMangaChapters(
-    source,
-    route.query.mangaId
-)
+store.MangaChapters = await window.api.getMangaChapters(route.query.mangaId)
 
 console.log(store.MangaDetails)
 
 async function downloadChapter(chapter: Chapter) {
     // @ts-expect-error api
     const chapterDetails: ChapterDetails[] = await api.getMangaChapterDetails(
-        source,
         route.query.mangaId,
         [clone(chapter)]
     )
@@ -249,7 +242,6 @@ async function downloadRangeChapters() {
     console.log(range)
     //@ts-expect-error api
     const chapterDetails: ChapterDetails[] = await api.getMangaChapterDetails(
-        source,
         route.query.mangaId,
         range
     )
@@ -264,7 +256,6 @@ async function downloadAllChapters() {
 
     //@ts-expect-error api
     const chapterDetails: ChapterDetails[] = await api.getMangaChapterDetails(
-        source,
         route.query.mangaId,
         cloneDeep(store.MangaChapters)
     )
@@ -288,7 +279,7 @@ async function sendDownloadRequest(
         cbr: format.value,
     }
     // @ts-expect-error api
-    const data = await api.downloadChapter(source, options)
+    const data = await api.downloadChapter(options)
     console.log(data)
 }
 </script>

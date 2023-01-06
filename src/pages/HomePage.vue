@@ -10,15 +10,15 @@
 </template>
 
 <script setup lang="ts">
-import { HomeSection, TagSection } from 'paperback-extensions-common'
 import HomeSectionVue from '../components/HomeSection.vue'
 import { MangaStore } from '../stores/manga-store'
 
-import { cloneDeep, isEmpty } from 'lodash'
-import { watch, onMounted, onBeforeMount } from 'vue'
+import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 import LoadingScreen from '../components/LoadingScreen.vue'
 import { MangaSource } from '../helpers/models'
+
+import { loadSource, getSectionsAndTags } from '../helpers/functions'
 
 const store = MangaStore()
 const route = useRoute()
@@ -34,52 +34,15 @@ watch(
 
         if (result != undefined) store.currentSource = result
         // console.log(source)
+        await loadSource()
 
-        //@ts-expect-error api
-        const sectionsData: HomeSection[] = await api.getHomeSections(
-            cloneDeep(store.currentSource)
-        )
-
-        // @ts-expect-error api
-        const tagsData: TagSection[] = await api.getTags(
-            cloneDeep(store.currentSource)
-        )
-
-        let prevId = ''
-        store.homeSections = sectionsData.filter((section: HomeSection) => {
-            if (section.id === prevId) return
-            prevId = section.id
-            return section
-        })
-
-        store.sourceTags = tagsData
-
+        await getSectionsAndTags()
         store.isBusy = false
     }
 )
-// onBeforeMount(() => {
-//     store.isBusy = true
-// })
 
-// store.currentSource = store.sources[0]
-//@ts-expect-error api
-const sectionsData: HomeSection[] = await api.getHomeSections(
-    cloneDeep(store.currentSource)
-)
-
-// @ts-expect-error api
-const tagsData: TagSection[] = await api.getTags(cloneDeep(store.currentSource))
-
-let prevId = ''
-store.homeSections = sectionsData.filter((section: HomeSection) => {
-    if (section.id === prevId) return
-    prevId = section.id
-    return section
-})
-
-store.sourceTags = tagsData
-store.isBusy = false
-console.log(tagsData)
+await loadSource()
+await getSectionsAndTags()
 </script>
 
 <style lang="sass"></style>

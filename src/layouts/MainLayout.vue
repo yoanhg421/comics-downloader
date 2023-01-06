@@ -98,11 +98,11 @@ const sourceURL = ref('https://thenetsky.github.io/extensions-generic/nepnep')
 
 //@ts-expect-error api
 const data = await api.getSources()
-console.log(data)
+// console.log(data)
 
 store.sources = data
 
-console.log(store.sources)
+// console.log(store.sources)
 
 async function installSource() {
     prompt.value = false
@@ -127,7 +127,7 @@ async function search() {
 if (store.sources.length > 0 && store.currentSource.id == undefined) {
     store.currentSource = store.sources[0]
     // const keys = Object.keys(store.sources)
-    router.push({ path: `/source/${store.currentSource.id}` })
+    router.replace({ path: `/source/${store.currentSource.id}` })
     // router.push({ path: 'source/MangaLife' })
 }
 </script>

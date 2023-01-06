@@ -52,7 +52,10 @@ let query: SearchRequest = {
 }
 
 const scrollDisabled = computed(() => {
-    return store.pagedResults.metadata?.manga?.length <= 100
+    return (
+        store.pagedResults.metadata?.done ||
+        store.pagedResults.metadata?.manga?.length <= 100
+    )
 })
 
 if (route.query.tagId && route.query.tagLabel) {
@@ -69,10 +72,13 @@ if (route.query.title) {
 if (route.query.author) {
     query.parameters.author.push(route.query.author as string)
 }
-//@ts-expect-error api
-const response: PagedResults = await api.searchRequest(source, query)
-console.log(response)
-store.pagedResults = response
+
+try {
+    //@ts-expect-error api
+    const response: PagedResults = await api.searchRequest(query)
+    console.log(response)
+    store.pagedResults = response
+} catch (error) {}
 
 // console.log(store.searchResults)
 
@@ -80,23 +86,33 @@ async function onLoadId(index, done) {
     // store.pagedResults.results.push(
     //     store.pagedResults.metadata.manga.splice(100, 100)
     // )
-    if (store.pagedResults.metadata.page) {
-        const page = store.pagedResults.metadata?.page
+    try {
+        if (store.pagedResults.metadata.page) {
+            const page = store.pagedResults.metadata?.page
 
-        //@ts-expect-error api
-        const response = await api.searchRequest(source, query, { page })
-        store.pagedResults.results.push(...response.results)
-        store.pagedResults.metadata = response.metadata
-        console.log('********', response)
-        done()
-    } else if (store.pagedResults.metadata?.manga?.length > 100) {
-        setTimeout(() => {
-            // console.log(store.pagedResults.metadata.manga.splice(100, 100))
-            store.pagedResults.results.push(
-                ...store.pagedResults.metadata.manga.splice(100, 100)
-            )
+            //@ts-expect-error api
+            const response = await api.searchRequest(query, { page })
+            if (response.results?.length == 0) {
+                store.pagedResults.metadata.done = true
+            } else {
+                store.pagedResults.metadata.done = false
+
+                store.pagedResults.results.push(...response.results)
+                store.pagedResults.metadata = response.metadata
+                console.log('********', response)
+            }
             done()
-        }, 100)
+        } else if (store.pagedResults.metadata?.manga?.length > 100) {
+            setTimeout(() => {
+                // console.log(store.pagedResults.metadata.manga.splice(100, 100))
+                store.pagedResults.results.push(
+                    ...store.pagedResults.metadata.manga.splice(100, 100)
+                )
+                done()
+            }, 100)
+        }
+    } catch (error) {
+        store.pagedResults.metadata.done = true
     }
     // console.log(store.pagedResults)
 }

@@ -35,14 +35,15 @@ import { SearchRequest } from 'paperback-extensions-common'
 import { ipcRenderer, contextBridge } from 'electron'
 
 const WINDOW_API = {
-    getHomeSections: (source: any) => ipcRenderer.invoke('get/sections', source),
-    getTags: (source: any) => ipcRenderer.invoke('getTags', source),
-    getMangaDetails: (source: any, mangaId: string) => ipcRenderer.invoke('get/details', source, mangaId),
-    getMangaChapters: (source: any, mangaId: string) => ipcRenderer.invoke('get/chapters', source, mangaId),
-    getMangaChapterDetails: (source: any, mangaId: string, chapterId: string) => ipcRenderer.invoke('get/chapter/details', source, mangaId, chapterId),
-    downloadChapter: (source: any, data: DownloadRequest) => ipcRenderer.invoke('download/chapter', source, data),
-    viewMore: (source: any, section: string) => ipcRenderer.invoke('view-more', source, section),
-    searchRequest: (source: any, query: SearchRequest, metadata: any) => ipcRenderer.invoke('search', source, query, metadata),
+    getHomeSections: () => ipcRenderer.invoke('get/sections'),
+    loadSource: (sourceId: string) => ipcRenderer.invoke('changeSource', sourceId),
+    getTags: () => ipcRenderer.invoke('getTags'),
+    getMangaDetails: (mangaId: string) => ipcRenderer.invoke('get/details', mangaId),
+    getMangaChapters: (mangaId: string) => ipcRenderer.invoke('get/chapters', mangaId),
+    getMangaChapterDetails: (mangaId: string, chapterId: string) => ipcRenderer.invoke('get/chapter/details', mangaId, chapterId),
+    downloadChapter: (data: DownloadRequest) => ipcRenderer.invoke('download/chapter', data),
+    viewMore: (section: string) => ipcRenderer.invoke('view-more', section),
+    searchRequest: (query: SearchRequest, metadata: any) => ipcRenderer.invoke('search', query, metadata),
     getSources: () => ipcRenderer.invoke('sources'),
     installSource: (baseUrl: string) => ipcRenderer.invoke('install-source', baseUrl),
 }

@@ -1,6 +1,8 @@
 
 import { Chapter, Manga, ChapterDetails, Tag, SearchOperator } from 'paperback-extensions-common'
 
+declare const api: any
+
 export enum MangaStatus {
     ONGOING = 1,
     COMPLETED = 0,
@@ -35,3 +37,5 @@ export interface Metadata {
 */
     // parameters: Record<string, string[]>;
 }
+
+
