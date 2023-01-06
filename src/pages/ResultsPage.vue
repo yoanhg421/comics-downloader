@@ -52,7 +52,7 @@ let query: SearchRequest = {
 }
 
 const scrollDisabled = computed(() => {
-    return store.pagedResults.metadata.manga.length <= 100
+    return store.pagedResults.metadata?.manga?.length <= 100
 })
 
 if (route.query.tagId && route.query.tagLabel) {
@@ -71,16 +71,25 @@ if (route.query.author) {
 }
 //@ts-expect-error api
 const response: PagedResults = await api.searchRequest(source, query)
+console.log(response)
 store.pagedResults = response
 
 // console.log(store.searchResults)
 
-function onLoadId(index, done) {
+async function onLoadId(index, done) {
     // store.pagedResults.results.push(
     //     store.pagedResults.metadata.manga.splice(100, 100)
     // )
+    if (store.pagedResults.metadata.page) {
+        const page = store.pagedResults.metadata?.page
 
-    if (store.pagedResults.metadata.manga.length > 100) {
+        //@ts-expect-error api
+        const response = await api.searchRequest(source, query, { page })
+        store.pagedResults.results.push(...response.results)
+        store.pagedResults.metadata = response.metadata
+        console.log('********', response)
+        done()
+    } else if (store.pagedResults.metadata?.manga?.length > 100) {
         setTimeout(() => {
             // console.log(store.pagedResults.metadata.manga.splice(100, 100))
             store.pagedResults.results.push(
@@ -89,7 +98,7 @@ function onLoadId(index, done) {
             done()
         }, 100)
     }
-    console.log(store.pagedResults)
+    // console.log(store.pagedResults)
 }
 </script>
 

@@ -200,9 +200,9 @@ ipcMain.handle('get/chapter/details', async (event, sourceId, mangaId, chapters:
     return result
     // return await wrapper.getChapterDetails(source, mangaId, chapterId ?? 'unknown')
 })
-ipcMain.handle('search', async (_, sourceId, query) => {
+ipcMain.handle('search', async (_, sourceId, query, metadata) => {
     const source = await loadSource(sourceId)
-    return await wrapper.searchRequest(source, query)
+    return await wrapper.searchRequest(source, query, metadata)
 })
 ipcMain.handle('getTags', async (_, sourceId) => {
     const source = await loadSource(sourceId)

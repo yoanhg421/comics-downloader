@@ -42,7 +42,7 @@ const WINDOW_API = {
     getMangaChapterDetails: (source: any, mangaId: string, chapterId: string) => ipcRenderer.invoke('get/chapter/details', source, mangaId, chapterId),
     downloadChapter: (source: any, data: DownloadRequest) => ipcRenderer.invoke('download/chapter', source, data),
     viewMore: (source: any, section: string) => ipcRenderer.invoke('view-more', source, section),
-    searchRequest: (source: any, query: SearchRequest) => ipcRenderer.invoke('search', source, query),
+    searchRequest: (source: any, query: SearchRequest, metadata: any) => ipcRenderer.invoke('search', source, query, metadata),
     getSources: () => ipcRenderer.invoke('sources'),
     installSource: (baseUrl: string) => ipcRenderer.invoke('install-source', baseUrl),
 }
