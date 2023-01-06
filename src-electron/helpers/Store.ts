@@ -15,6 +15,7 @@ class Store {
         this.path = path.join(this.sourcesDir, opts.storeFile + '.json');
 
         if (!fs.existsSync(this.path)) {
+            fs.ensureFileSync(this.path)
             fs.writeJsonSync(this.path, {})
 
         }
