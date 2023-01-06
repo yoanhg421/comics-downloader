@@ -118,11 +118,17 @@ export async function downloadfFiles(data: DownloadRequest) {
                         responseType: 'stream'
                     })
                     await pipeline(resp.data, writer)
+
+
                 } catch (err) {
                     console.log(err)
                     // progressBar.close()
                     // return Promise.reject(err)
 
+                }
+                const stats = await fs.stat(imagePath)
+                if (stats.size == 0) {
+                    await fs.removeFile(imagePath)
                 }
                 if (data.chapters.length == 1)
                     progressBar.value += 1
@@ -167,10 +173,17 @@ export async function generatePDF(tempSaveDir: string, savePath: string) {
 
     for (const file of files) {
         const buffer = await fsp.readFile(file)
+        // const stats = await fs.stat(file)
+        // if (stats.size > 0)
         pages.push(buffer)
     }
+    try {
+        imgToPDF(pages, imgToPDF.sizes.A4).pipe(fs.createWriteStream(savePath))
 
-    imgToPDF(pages, imgToPDF.sizes.A4).pipe(fs.createWriteStream(savePath))
+    } catch (error) {
+        console.log(error)
+        progressBar.close()
+    }
     progressBar.setCompleted()
 
 }
