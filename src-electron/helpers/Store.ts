@@ -13,8 +13,12 @@ class Store {
     constructor(opts: any) {
 
         this.path = path.join(this.sourcesDir, opts.storeFile + '.json');
-        fs.ensureFileSync(this.path)
-        // fs.writeJsonSync(this.path, {})
+
+        if (!fs.existsSync(this.path)) {
+            fs.writeJsonSync(this.path, {})
+
+        }
+        // fs.ensureFileSync(this.path)
 
         this.data = parseDataFile(this.path);
 
