@@ -6,6 +6,15 @@ import { HomeSection } from 'paperback-extensions-common'
 const store = MangaStore()
 
 
+export async function getSources() {
+    //@ts-expect-error api
+    const data = await api.getSources()
+    // console.log(data)
+
+    store.sources = data
+}
+
+
 
 export async function loadSource() {
     try {

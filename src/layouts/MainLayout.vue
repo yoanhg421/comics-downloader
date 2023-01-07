@@ -23,9 +23,9 @@
                         <TagSection />
                     </div>
                 </q-btn-dropdown>
-                <q-icon name="add" size="sm" @click="prompt = true">
+                <q-btn flat round dense icon="add" @click="prompt = true">
                     <q-dialog v-model="prompt" persistent>
-                        <q-card style="min-width: 350px">
+                        <q-card style="min-width: 600px">
                             <q-card-section>
                                 <div class="text-h6">Source URL</div>
                             </q-card-section>
@@ -55,7 +55,8 @@
                             </q-card-actions>
                         </q-card>
                     </q-dialog>
-                </q-icon>
+                </q-btn>
+                <q-btn flat round dense icon="settings" @click="openSettings" />
             </q-toolbar>
 
             <q-tabs align="left" v-model="tabs">
@@ -85,6 +86,7 @@ import TagSection from '../components/TagSection.vue'
 import LoadingScreen from '../components/LoadingScreen.vue'
 import { useRouter } from 'vue-router'
 import { MangaStore } from '../stores/manga-store'
+import { getSources, loadSource } from '../helpers/functions'
 
 const router = useRouter()
 
@@ -96,13 +98,20 @@ const store = MangaStore()
 const prompt = ref(false)
 const sourceURL = ref('https://thenetsky.github.io/extensions-generic/nepnep')
 
-//@ts-expect-error api
-const data = await api.getSources()
-// console.log(data)
+// async function getSources(params:type) {
+// 	//@ts-expect-error api
+// 	const data = await api.getSources()
+// 	// console.log(data)
 
-store.sources = data
+// 	store.sources = data
+// }
+await getSources()
 
 // console.log(store.sources)
+
+function openSettings() {
+    router.push({ name: 'settings' })
+}
 
 async function installSource() {
     prompt.value = false
@@ -110,6 +119,12 @@ async function installSource() {
     const response = await api.installSource(sourceURL.value)
     console.log(response)
     sourceURL.value = ''
+    await getSources()
+    if (store.sources.length > 0 && store.currentSource.id == undefined) {
+        store.currentSource = store.sources[0]
+        await loadSource()
+    }
+    router.go(0)
 }
 
 async function search() {

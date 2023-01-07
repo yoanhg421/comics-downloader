@@ -18,6 +18,7 @@ const routes: RouteRecordRaw[] = [
             { path: 'view-more', name: 'more', component: () => import('src/pages/ViewMore.vue') },
             { path: 'view-results', name: 'results', component: () => import('src/pages/ResultsPage.vue') },
             { path: 'manga-details', name: 'details', component: () => import('src/pages/MangaDetails.vue') },
+            { path: 'settings', name: 'settings', component: () => import('src/pages/SettingsPage.vue') },
         ]
     },
 

@@ -1,6 +1,6 @@
 {
     "name": "comics-downloader",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "A Quasar Project",
     "productName": "Comics Dowloader",
     "author": "yoanhg421 <yoanhg421@gmail.com>",
@@ -27,7 +27,6 @@
         "open": "^8.4.0",
         "paperback-extensions-common": "^4.3.5",
         "pinia": "^2.0.11",
-        "playwright": "^1.29.2",
         "quasar": "^2.6.0",
         "request": "^2.88.2",
         "vue": "^3.0.0",
