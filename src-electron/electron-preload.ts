@@ -46,6 +46,7 @@ const WINDOW_API = {
     searchRequest: (query: SearchRequest, metadata: any) => ipcRenderer.invoke('search', query, metadata),
     getSources: () => ipcRenderer.invoke('sources'),
     installSource: (baseUrl: string) => ipcRenderer.invoke('install-source', baseUrl),
+    removeSource: (sourceId: string) => ipcRenderer.invoke('remove/source', sourceId)
 }
 
 contextBridge.exposeInMainWorld('api', WINDOW_API)

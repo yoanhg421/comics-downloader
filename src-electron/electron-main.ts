@@ -13,7 +13,7 @@ import ProgressBar from 'electron-progressbar'
 // import fs from 'node:fs/promises'
 import { store } from './helpers/Store'
 
-import playwright from 'playwright';
+
 
 
 
@@ -24,7 +24,7 @@ import playwright from 'playwright';
 import { APIWrapper, Chapter, Source } from 'paperback-extensions-common'
 // import { Mangasee } from './nepnep/Mangasee/Mangasee'
 import { DownloadRequest } from '../interfaces/comics-downloader'
-import { installSource, getInstalledSources } from './helpers/sourceHandler';
+import { installSource, getInstalledSources, removeSource } from './helpers/sourceHandler';
 
 
 // needed in case process is undefined under Linux
@@ -150,7 +150,9 @@ async function loadSource(src: any) {
     setUserAgent(src.websiteBaseURL)
 
     const mangaSource: Source = await import(store.getSourcePath(src.id))
+
     const source = new mangaSource[src.id](cheerio)
+    console.log(source)
 
     return source
 
@@ -226,4 +228,9 @@ ipcMain.handle('view-more', async (_, section) => {
 ipcMain.handle('install-source', async (_, baseUrl) => {
 
     return await installSource(baseUrl)
+})
+
+
+ipcMain.handle('remove/source', async (_, sourceId: string) => {
+    return removeSource(sourceId)
 })

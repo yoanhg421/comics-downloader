@@ -1,3 +1,4 @@
+import { MangaSource } from './../../src/helpers/models'
 
 import Stream from '@supercharge/streams'
 
@@ -12,6 +13,7 @@ import { store } from './Store'
 const sourceName = 'source.js'
 const versioning = 'versioning.json'
 const sourcesDir = path.join(app.getPath('userData'), 'MangaSources')
+const iconDir = 'includes'
 
 
 
@@ -20,8 +22,19 @@ export async function getSourceDetails(sourceId: string) {
 }
 
 export async function getInstalledSources() {
-    return await store.allSources()
+
+    const sources: MangaSource[] = await store.allSources()
+    for (const source of sources) {
+
+        const icon = path.join(sourcesDir, source.id, iconDir, source.icon)
+        const data = await fs.content(icon)
+
+        source.icon = data
+    }
+    return sources
+
 }
+
 
 
 export async function installSource(baseUrl: string) {
@@ -37,7 +50,8 @@ export async function installSource(baseUrl: string) {
 
         downloadSourceFiles(api, json)
 
-        async.map(json.sources, (source => {
+        async.map(json.sources, ((source: MangaSource) => {
+            source.enabled = false
 
             store.set(source.id, source)
 
@@ -51,6 +65,8 @@ export async function installSource(baseUrl: string) {
 
 
 }
+
+
 
 async function downloadSourceFiles(api: any, json: any) {
     await async.map(json.sources, async (source: any) => {
@@ -82,8 +98,9 @@ async function downloadSourceFiles(api: any, json: any) {
 
     })
 }
-async function deleteSource(sourceId) {
+export async function removeSource(sourceId) {
     const sourceDirPath = path.join(sourcesDir, sourceId)
-    fs.removeDir(sourceDirPath)
     store.delete(sourceId)
+    fs.removeDir(sourceDirPath)
+
 }

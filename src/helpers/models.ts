@@ -1,6 +1,7 @@
 
 import { Chapter, Manga, ChapterDetails, Tag, SearchOperator } from 'paperback-extensions-common'
 
+
 export interface MangaSource {
 
     id: string,
@@ -22,7 +23,9 @@ export interface MangaSource {
         }
     ],
     websiteBaseURL: string,
-    filePath: string
+    filePath: string,
+    enabled?: boolean,
+
 
 }
 

@@ -1,3 +1,4 @@
+import { MangaSource } from './../../src/helpers/models'
 import { app } from 'electron'
 import path from 'path'
 import fs from '@supercharge/fs'
@@ -38,7 +39,7 @@ class Store {
         fs.writeJsonSync(this.path, this.data)
     }
 
-    async allSources() {
+    async allSources(): Promise<MangaSource[]> {
         const sources = await fs.readJson(this.path)
 
         return Object.values(sources)
