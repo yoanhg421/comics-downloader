@@ -27,7 +27,7 @@ export async function getInstalledSources() {
     for (const source of sources) {
 
         const icon = path.join(sourcesDir, source.id, iconDir, source.icon)
-        const data = await fs.content(icon)
+        const data = fs.readFileSync(icon).toString('base64')
 
         source.icon = data
     }

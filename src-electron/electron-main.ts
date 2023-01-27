@@ -1,6 +1,7 @@
 
 
-import { app, BrowserWindow, nativeTheme, ipcMain, Menu, session } from 'electron';
+
+import { app, BrowserWindow, nativeTheme, ipcMain, session } from 'electron';
 import path from 'path';
 import os from 'os';
 
@@ -13,7 +14,7 @@ import ProgressBar from 'electron-progressbar'
 // import fs from 'node:fs/promises'
 import { store } from './helpers/Store'
 
-
+import { chromium } from 'playwright'
 
 
 
@@ -25,6 +26,7 @@ import { APIWrapper, Chapter, Source } from 'paperback-extensions-common'
 // import { Mangasee } from './nepnep/Mangasee/Mangasee'
 import { DownloadRequest } from '../interfaces/comics-downloader'
 import { installSource, getInstalledSources, removeSource } from './helpers/sourceHandler';
+import { electron } from 'process';
 
 
 // needed in case process is undefined under Linux
@@ -97,9 +99,9 @@ app.whenReady().then(createWindow);
 
 
 app.on('window-all-closed', () => {
-    if (platform !== 'darwin') {
-        app.quit();
-    }
+    // if (platform !== 'darwin') {
+    app.quit();
+    // }
 });
 
 app.on('activate', () => {
@@ -127,19 +129,53 @@ const wrapper = new APIWrapper()
 // const versioning = glob.sync(dir + '/**/*.json')
 // console.log(sources)
 
-function setUserAgent(baseUrl: string) {
+async function setUserAgent(baseUrl: string) {
+
+
+
+    const browser = await chromium.launch()
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    const data = await page.goto(baseUrl)
+
+    // console.info(data?.json)
+    const cookies = await context.cookies(baseUrl)
+    await browser.close()
+    await context.close()
+
+
+
+    const coockieJar = session.defaultSession.cookies;
+
+    for (const ck of cookies) {
+        // console.log(ck)
+        const cookie = { url: data!.url(), name: ck.name, value: ck.value, domain: ck.domain, expirationDate: ck.expires, httpOnly: ck.httpOnly, path: ck.path }
+        await coockieJar.set(cookie)
+            .then(() => {
+                console.log('Cookie set')
+            }, (error) => {
+                console.error(error)
+            })
+
+        //  await session.defaultSession.cookies.get({})
+
+    }
+
+
     const filter = {
         urls: ['https://*/*', 'http://*/*'],
     };
     session.defaultSession.webRequest.onBeforeSendHeaders(filter, (details, callback) => {
 
-        const url = new URL(baseUrl);
+        const url = new URL(data!.url());
         details.requestHeaders['Origin'] = url.origin;
         details.requestHeaders['Referer'] = url.origin;
         // details.requestHeaders['UserAgent'] = userAgent
         details.requestHeaders['User-Agent'] = userAgent
+        details.requestHeaders['Cookie'] = coockieJar.toString()
 
-        callback({ cancel: false, requestHeaders: details.requestHeaders });
+
+        callback({ requestHeaders: details.requestHeaders });
     });
 }
 
@@ -147,12 +183,15 @@ function setUserAgent(baseUrl: string) {
 async function loadSource(src: any) {
 
 
-    setUserAgent(src.websiteBaseURL)
+    await setUserAgent(src.websiteBaseURL)
+
 
     const mangaSource: Source = await import(store.getSourcePath(src.id))
 
+
     const source = new mangaSource[src.id](cheerio)
-    console.log(source)
+
+    // console.log(source)
 
     return source
 
@@ -162,6 +201,7 @@ async function loadSource(src: any) {
 ipcMain.handle('changeSource', async (_, sourceId) => {
     try {
         source = await loadSource(sourceId)
+
         return true
     } catch (err) {
         return false
@@ -192,18 +232,21 @@ ipcMain.handle('get/chapter/details', async (_, mangaId, chapters: Chapter[]) =>
 
     const progressBar = new ProgressBar({
         indeterminate: true,
+        abortOnError: true,
         text: 'Getting Chapter Data ...',
         detail: 'Wait...',
+        browserWindow: {
+            parent: mainWindow
+        }
     })
 
 
     const result = await async.mapLimit(
-        chapters, 5, async (ch: Chapter) => {
+        chapters, 20, async (ch: Chapter) => {
             return await wrapper.getChapterDetails(source, mangaId, ch.id ?? 'unknown')
         })
     progressBar.setCompleted()
-    console.log(result
-    )
+    // console.log(result)
     return result
     // return await wrapper.getChapterDetails(source, mangaId, chapterId ?? 'unknown')
 })
@@ -217,7 +260,7 @@ ipcMain.handle('getTags', async () => {
 })
 
 ipcMain.handle('download/chapter', async (_, data: DownloadRequest) => {
-    return await downloadfFiles(data)
+    return await downloadfFiles(data, mainWindow!)
 })
 
 ipcMain.handle('view-more', async (_, section) => {

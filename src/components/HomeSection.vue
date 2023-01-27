@@ -17,7 +17,7 @@
             <q-icon name="chevron_left" size="md" />
         </div>
         <div class="col">
-            <q-scroll-area style="height: 16rem" :visible="false">
+            <q-scroll-area style="height: 20rem" :visible="false">
                 <div class="row no-wrap q-gutter-md q-pa-sm">
                     <div v-for="manga in props.section.items" :key="manga.id">
                         <MangaTile :manga="manga" />

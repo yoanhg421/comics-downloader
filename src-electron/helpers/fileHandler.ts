@@ -2,6 +2,8 @@ import fs from '@supercharge/fs'
 import fsp from 'fs/promises'
 import zipper from 'zip-local'
 
+import { zip } from 'zip-a-folder'
+
 import async from 'async'
 import axios from 'axios'
 import axiosRetry, { exponentialDelay } from 'axios-retry'
@@ -17,7 +19,7 @@ import glob from 'glob'
 import imgToPDF from 'image-to-pdf'
 import { DownloadRequest } from '../../interfaces/comics-downloader'
 import _ from 'lodash'
-import { shell } from 'electron'
+import { app, shell, BrowserWindow } from 'electron'
 
 
 // export async function loadSources(sourcesFolder: string) {
@@ -39,7 +41,7 @@ export async function getChapterDetails(callback: CallableFunction) {
 }
 
 
-export async function downloadfFiles(data: DownloadRequest) {
+export async function downloadfFiles(data: DownloadRequest, mainWindow: BrowserWindow) {
     const tempDir = await fs.tempDir()
     console.log('*******', tempDir)
     //console.log('*******', data)
@@ -78,7 +80,10 @@ export async function downloadfFiles(data: DownloadRequest) {
         text: 'Preparing data...',
         detail: 'Wait...',
         maxValue: data.chapters.length == 1 ? data.chapterDetails[0].pages.length : data.chapterDetails.length,
-    })
+        browserWindow: {
+            parent: mainWindow
+        }
+    }, app)
 
     progressBar
         .on('completed', function () {
@@ -97,7 +102,7 @@ export async function downloadfFiles(data: DownloadRequest) {
     await async.eachSeries(data.chapters, async (chapter) => {
         const chapterIndex = data.chapters.indexOf(chapter)
 
-        const subDir = path.join(tempSavePath, `Volume - ${chapter?.volume ?? 'unknown'}`, `Chapter - ${chapter?.chapNum ?? 'unknown'}`)
+        const subDir = path.join(tempSavePath, `Volume - ${chapter?.volume ?? 'unknown'} Chapter - ${chapter?.chapNum ?? 'unknown'}`)
 
         await fs.ensureDir(subDir)
 
@@ -106,14 +111,14 @@ export async function downloadfFiles(data: DownloadRequest) {
 
         await async.mapLimit(
             data.chapterDetails[chapterIndex].pages,
-            10,
+            20,
             async (page: string) => {
                 const imageName = page.split('/').pop() ?? ''
                 const imagePath = path.join(subDir, imageName)
 
                 const writer = fs.createWriteStream(imagePath)
                 try {
-                    axiosRetry(axios, { retries: 5, retryDelay: exponentialDelay })
+                    axiosRetry(axios, { retries: 6, retryDelay: exponentialDelay })
                     const resp = await axios.get(page, {
                         responseType: 'stream'
                     })
@@ -143,6 +148,9 @@ export async function downloadfFiles(data: DownloadRequest) {
         indeterminate: true,
         text: 'Compressing Files..',
         detail: 'Wait...',
+        browserWindow: {
+            parent: mainWindow
+        }
 
     })
     console.log(tempDir)
@@ -156,6 +164,8 @@ export async function downloadfFiles(data: DownloadRequest) {
             tempSavePath,
             path.join(downloadDir, `${nameString}.pdf`)
         )
+
+    console.info('done')
 
     await fs.removeDir(tempDir)
 
@@ -190,16 +200,23 @@ export async function generatePDF(tempSaveDir: string, savePath: string) {
 
 export async function generateCBR(tempSaveDir: string, savePath: string) {
 
+    try {
+        await zip(tempSaveDir, savePath)
+        progressBar.setCompleted()
 
-    zipper.zip(tempSaveDir, (error, zipped) => {
-        if (!error) {
-            zipped.compress().save(savePath)
-            progressBar.setCompleted()
-        } else {
-            console.log(error)
-            progressBar.close()
-        }
-    })
+    } catch (errr) {
+        progressBar.close()
+
+    }
+    // zipper.zip(tempSaveDir, (error, zipped) => {
+    //     if (!error) {
+    //         zipped.compress().save(savePath)
+    //         progressBar.setCompleted()
+    //     } else {
+    //         console.log(error)
+    //         progressBar.close()
+    //     }
+    // })
 
 }
 

@@ -269,6 +269,7 @@ async function sendDownloadRequest(
     chapter: Chapter[] | null = null,
     chapterDetails: ChapterDetails[]
 ) {
+    console.log(chapterDetails)
     const options: DownloadRequest = {
         manga: cloneDeep(store.MangaDetails),
         chapters:
