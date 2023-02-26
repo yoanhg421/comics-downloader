@@ -17,7 +17,7 @@
             <q-icon name="chevron_left" size="md" />
         </div>
         <div class="col">
-            <q-scroll-area style="height: 20rem" :visible="false">
+            <q-scroll-area style="height: 16rem" :visible="false">
                 <div class="row no-wrap q-gutter-md q-pa-sm">
                     <div v-for="manga in props.section.items" :key="manga.id">
                         <MangaTile :manga="manga" />
@@ -32,16 +32,16 @@
 </template>
 
 <script lang="ts" setup>
-import { MangaStore } from '../stores/manga-store'
+// import { MangaStore } from '../stores/manga-store'
 import MangaTile from '../components/MangaTile.vue'
 import { useRouter } from 'vue-router'
-import { HomeSection } from 'paperback-extensions-common'
-import { cloneDeep } from 'lodash'
+// import { HomeSection } from 'paperback-extensions-common'
+// import { cloneDeep } from 'lodash'
 
-const store = MangaStore()
+// const store = MangaStore()
 const router = useRouter()
 
-const source = cloneDeep(store.currentSource)
+// const source = cloneDeep(store.currentSource)
 
 const props = defineProps({
     section: {
@@ -51,10 +51,11 @@ const props = defineProps({
 })
 
 async function viewMore() {
-    //@ts-expect-error api
-    store.viewMore = await window.api.viewMore(source, props.section.id)
-    store.currentSection = props.section as HomeSection
-    router.push({ path: '/b/view-more', query: { title: props.section.title } })
+    router.push({
+        name: 'more',
+        query: { title: props.section.title },
+        params: { section: props.section.id },
+    })
 }
 </script>
 

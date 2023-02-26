@@ -1,6 +1,6 @@
 <template>
     <div
-        v-for="tagSection in store.sourceTags"
+        v-for="tagSection in store.sources2[sourceId].tagsData"
         :key="tagSection.id"
         class="q-mb-lg"
     >
@@ -31,6 +31,13 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const store = MangaStore()
+
+defineProps({
+    sourceId: {
+        type: String,
+        required: true,
+    },
+})
 
 // console.log(store.sourceTags)
 </script>
