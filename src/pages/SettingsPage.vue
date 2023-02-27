@@ -41,7 +41,7 @@
             <template v-slot:before>
                 <q-tabs v-model="tab" vertical class="text-teal">
                     <q-tab
-                        v-for="source in store.sources"
+                        v-for="source in store.sources2"
                         :key="source.id"
                         :name="source.id"
                         :label="source.name"
@@ -59,7 +59,7 @@
                     transition-next="jump-up"
                 >
                     <q-tab-panel
-                        v-for="source in store.sources"
+                        v-for="source in store.sources2"
                         :key="source.id"
                         :name="source.id"
                     >
@@ -119,8 +119,11 @@ async function installSource() {
     console.log(response)
     sourceURL.value = ''
     await getSources()
-    if (store.sources.length > 0 && store.currentSource.id == undefined) {
-        store.currentSource = store.sources[0]
+    if (
+        Object.values(store.sources2).length != 0 &&
+        store.currentSource.id == undefined
+    ) {
+        store.currentSource = Object.values(store.sources2)[0]
         await loadSource()
     }
     router.back()

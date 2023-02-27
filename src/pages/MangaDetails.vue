@@ -120,7 +120,7 @@
             <q-list separator padding>
                 <q-item
                     clickable
-                    @click="downloadChapter(chapter)"
+                    @click="viewChapter(chapter)"
                     v-for="chapter in store.MangaChapters"
                     :key="chapter.id"
                 >
@@ -186,13 +186,15 @@ function getTagResults(tag: Tag) {
     // let temp: Tag
     let finalTag: Tag | undefined
 
-    store.sourceTags.find((cat) => {
-        if (cat.label == store.MangaDetails.tags![0].label) {
-            let temp = cat.tags.find((t) => t.label === tag.label)
+    Object.values<any>(store.sources2[store.currentSource.id].tagsData).find(
+        (cat) => {
+            if (cat.label == store.MangaDetails.tags![0].label) {
+                let temp = cat.tags.find((t) => t.label === tag.label)
 
-            finalTag = temp
+                finalTag = temp
+            }
         }
-    })
+    )
     // console.log(finalTag)
 
     if (finalTag != undefined) {
@@ -228,6 +230,19 @@ async function downloadChapter(chapter: Chapter) {
     )
 
     sendDownloadRequest([chapter], chapterDetails)
+}
+
+async function viewChapter(chapter: Chapter) {
+    // @ts-expect-error api
+    const chapterDetails: ChapterDetails[] = await api.getMangaChapterDetails(
+        route.query.mangaId,
+        [clone(chapter)]
+    )
+
+    store.pages = chapterDetails[0].pages
+    router.push({ name: 'view' })
+
+    // sendDownloadRequest([chapter], chapterDetails)
 }
 
 async function downloadRangeChapters() {

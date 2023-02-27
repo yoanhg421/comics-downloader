@@ -25,5 +25,5 @@ const route = useRoute()
 const source = cloneDeep(store.currentSource)
 
 //@ts-expect-error api
-store.viewMore = await window.api.viewMore(source, store.currentSection.id)
+store.viewMore = await window.api.viewMore(route.params.section)
 </script>

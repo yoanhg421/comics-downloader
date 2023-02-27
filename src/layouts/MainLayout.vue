@@ -18,18 +18,18 @@
                         <q-icon name="search" />
                     </template>
                 </q-input>
-                <q-btn-dropdown flat no-caps rounded label="Tags">
+                <!-- <q-btn-dropdown flat no-caps rounded label="Tags">
                     <div class="q-pa-md">
-                        <TagSection />
+                        <TagSection :source-id="sour" />
                     </div>
-                </q-btn-dropdown>
+                </q-btn-dropdown> -->
 
                 <q-btn flat round dense icon="settings" @click="openSettings" />
             </q-toolbar>
 
             <q-tabs align="left" v-model="tabs">
                 <q-route-tab
-                    v-for="source in store.sources"
+                    v-for="source in store.sources2"
                     :key="source.id"
                     :to="`/source/${source.id}`"
                     :label="source.name"
@@ -71,7 +71,9 @@ const store = MangaStore()
 
 // 	store.sources = data
 // }
-await getSources()
+if (Object.keys(store.sources2).length == 0) {
+    await getSources()
+}
 
 // console.log(store.sources)
 
@@ -91,8 +93,11 @@ async function search() {
 
     searchField.value = ''
 }
-if (store.sources.length > 0 && store.currentSource.id == undefined) {
-    store.currentSource = store.sources[0]
+if (
+    Object.values(store.sources2).length != 0 &&
+    store.currentSource.id == undefined
+) {
+    store.currentSource = Object.values(store.sources2)[0]
     // const keys = Object.keys(store.sources)
     router.replace({ path: `/source/${store.currentSource.id}` })
     // router.push({ path: 'source/MangaLife' })

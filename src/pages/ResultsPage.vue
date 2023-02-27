@@ -74,15 +74,19 @@ if (route.query.author) {
 }
 
 try {
-    //@ts-expect-error api
-    const response: PagedResults = await api.searchRequest(query)
-    console.log(response)
-    store.pagedResults = response
+    if (store.currentQuery && store.currentQuery != route.query.tagId) {
+        console.log(route.query)
+        //@ts-expect-error api
+        const response: PagedResults = await api.searchRequest(query)
+        console.log(response)
+        store.pagedResults = response
+        store.currentQuery = route.query.tagId
+    }
 } catch (error) {}
 
-// console.log(store.searchResults)
 
-async function onLoadId(index, done) {
+
+async function onLoadId(index: number, done: CallableFunction) {
     // store.pagedResults.results.push(
     //     store.pagedResults.metadata.manga.splice(100, 100)
     // )
